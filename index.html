@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Portfolio</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js" defer></script>
+
+  <!-- Font Awesome for Hamburger & Icons -->
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous" defer></script>
+
+  <style>
+    /* Custom scrollbar for dark mode */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background-color: rgba(100, 100, 100, 0.5);
+      border-radius: 4px;
+    }
+    /* Dark mode styles */
+    .dark {
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
+      --card-bg: #1e1e1e;
+      --link-color: #8b5cf6;
+    }
+    body {
+      background-color: var(--bg-color, #f9fafb);
+      color: var(--text-color, #1f2937);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .card {
+      background-color: var(--card-bg, #fff);
+      transition: background-color 0.3s ease;
+    }
+    a, button {
+      color: var(--link-color, #4f46e5);
+      transition: color 0.3s ease;
+    }
+    a:hover, button:hover {
+      color: #7c3aed;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans transition-colors duration-300">
+
+  <!-- Navbar -->
+  <header id="navbar" class="bg-white shadow-md fixed w-full z-50 top-0 left-0 transition-transform duration-300">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="#" class="text-2xl font-bold text-indigo-600 select-none">Your Name</a>
+      <nav>
+        <ul id="nav-links" class="hidden md:flex space-x-8 text-gray-600">
+          <li><a href="#about" class="hover:text-indigo-600">About Me</a></li>
+          <li><a href="#skills" class="hover:text-indigo-600">Skills</a></li>
+          <li><a href="#projects" class="hover:text-indigo-600">Projects</a></li>
+          <li><a href="#contact" class="hover:text-indigo-600">Contact</a></li>
+        </ul>
+        <!-- Hamburger -->
+        <button id="hamburger" class="md:hidden focus:outline-none text-gray-700" aria-label="Toggle menu" aria-expanded="false">
+          <i class="fas fa-bars fa-2x"></i>
+        </button>
+      </nav>
+    </div>
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden bg-white shadow-md md:hidden px-6 pb-6">
+      <ul class="flex flex-col space-y-4 text-gray-700">
+        <li><a href="#about" class="block hover:text-indigo-600">About Me</a></li>
+        <li><a href="#skills" class="block hover:text-indigo-600">Skills</a></li>
+        <li><a href="#projects" class="block hover:text-indigo-600">Projects</a></li>
+        <li><a href="#contact" class="block hover:text-indigo-600">Contact</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Hero / Intro Section -->
+  <section id="hero" class="min-h-screen flex flex-col justify-center items-center text-center px-6 bg-indigo-50 dark:bg-[#1a1a2e]">
+    <h1 class="text-5xl md:text-6xl font-extrabold text-indigo-700 dark:text-indigo-300 mb-4 select-none">
+      <span id="typed-text"></span><span id="cursor" class="inline-block w-1 bg-indigo-700 dark:bg-indigo-300 animate-blink"></span>
+    </h1>
+    <p class="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-xl">
+      I'm a new programmer with <span class="font-semibold">confident communication skills</span> and a passion for building great things.
+    </p>
+  </section>
+
+  <!-- Main Content -->
+  <main class="max-w-5xl mx-auto px-6 py-10 space-y-20">
+
+    <!-- About Me Section -->
+    <section id="about" class="card rounded-lg shadow-md p-8">
+      <h2 class="text-4xl font-extrabold text-indigo-700 dark:text-indigo-400 mb-6">About Me</h2>
+      <p class="text-lg mb-4 leading-relaxed">
+        Hi! I’m a passionate new programmer eager to learn and grow in the tech world.
+        I combine my coding skills with confident communication, making sure ideas are clear and collaboration is smooth.
+      </p>
+      <p class="text-lg leading-relaxed">
+        I enjoy tackling challenges, building projects, and constantly improving my skills every day.
+      </p>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="card rounded-lg shadow-md p-8">
+      <h2 class="text-4xl font-extrabold text-indigo-700 dark:text-indigo-400 mb-6">Skills</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+
+        <!-- Programming Skills -->
+        <div>
+          <h3 class="text-2xl font-semibold mb-4 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 18l6-6-6-6M8 6l-6 6 6 6" />
+            </svg>
+            Programming
+          </h3>
+          <ul class="list-disc list-inside space-y-3 text-gray-700 dark:text-gray-300 text-lg">
+            <li>HTML</li>
+            <li>C</li>
+            <li>CSS</li>
+          </ul>
+        </div>
+
+        <!-- Leadership & Management -->
+        <div>
+          <h3 class="text-2xl font-semibold mb-4 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M12 11a4 4 0 100-8 4 4 0 000 8z" />
+            </svg>
+            Leadership & Management
+          </h3>
+          <ul class="list-disc list-inside space-y-3 text-gray-700 dark:text-gray-300 text-lg">
+            <li>Event Management</li>
+            <li>Leadership Skill</li>
+          </ul>
+        </div>
+
+        <!-- Communication -->
+        <div>
+          <h3 class="text-2xl font-semibold mb-4 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v7a2 2 0 01-2 2h-5l-4 4v-4H7a2 2 0 01-2-2v-1" />
+            </svg>
+            Communication
+          </h3>
+          <p class="text-gray-700 dark:text-gray-300 text-lg">Confident communication skills for effective collaboration and presentations.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="card rounded-lg shadow-md p-8">
+      <h2 class="text-4xl font-extrabold text-indigo-700 dark:text-indigo-400 mb-6">Projects</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Project 1 -->
+        <div class="border border-gray-300 dark:border-gray-600 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300 cursor-pointer card">
+          <h3 class="text-2xl font-semibold mb-2">Portfolio Website</h3>
+          <p class="text-gray-700 dark:text-gray-300 mb-4">
+            A modern, responsive portfolio built with HTML, Tailwind CSS, and JavaScript showcasing my skills and projects.
+          </p>
+          <a href="#" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">View Live</a>
+        </div>
+
+        <!-- Project 2 -->
+        <div class="border border-gray-300 dark:border-gray-600 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300 cursor-pointer card">
+          <h3 class="text-2xl font-semibold mb-2">Event Management System</h3>
+          <p class="text-gray-700 dark:text-gray-300 mb-4">
+            A simple event management app focusing on scheduling and task tracking for teams.
+          </p>
+          <a href="#" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">View Live</a>
+        </div>
+        
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="card rounded-lg shadow-md p-8">
+      <h2 class="text-4xl font-extrabold text-indigo-700 dark:text-indigo-400 mb-6">Contact Me</h2>
+      <p class="mb-6 text-gray-700 dark:text-gray-300">Feel free to reach out via email or connect on social media!</p>
+
+      <form id="contact-form" class="space-y-6 max-w-lg" >
+        <div>
+          <label for="name" class="block mb-2 font-semibold dark:text-gray-300">Name</label>
+          <input type="text" id="name" name="name" required class="w-full border border-gray-300 dark:border-gray-600 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-[#222238] dark:text-gray-300" />
+        </div>
+        <div>
+          <label for="email" class="block mb-2 font-semibold dark:text-gray-300">Email</label>
+          <input type="email" id="email" name="email" required class="w-full border border-gray-300 dark:border-gray-600 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-[#222238] dark:text-gray-300" />
+        </div>
+        <div>
+          <label for="message" class="block mb-2 font-semibold dark:text-gray-300">Message</label>
+          <textarea id="message" name="message" rows="5" required class="w-full border border-gray-300 dark:border-gray-600 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-[#222238] dark:text-gray-300"></textarea>
+        </div>
+        <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded hover:bg-indigo-700 transition duration-300">Send</button>
+      </form>
+
+      <div class="mt-8 flex space-x-8 text-indigo-600 dark:text-indigo-400 text-3xl">
+        <!-- GitHub -->
+        <a href="https://github.com/yourusername" target="_blank" aria-label="GitHub" class="hover:text-indigo-800 dark:hover:text-indigo-300 transition">
+          <i class="fab fa-github"></i>
+        </a>
+        <!-- LinkedIn -->
+        <a href="https://linkedin.com/in/yourusername" target="_blank" aria-label="LinkedIn" class="hover:text-indigo-800 dark:hover:text-indigo-300 transition">
+          <i class="fab fa-linkedin"></i>
+        </a>
+        <!-- Twitter -->
+        <a href="https://twitter.com/yourusername" target="_blank" aria-label="Twitter" class="hover:text-indigo-800 dark:hover:text-indigo-300 transition">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="text-center text-gray-500 dark:text-gray-400 py-6 text-sm select-none">
+    &copy; 2025 Your Name. All rights reserved.
+  </footer>
+
+  <script>
+    // Dark mode toggle - store preference in localStorage
+    (() => {
+      const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const darkToggleKey = 'portfolio-dark-mode';
+
+      function applyDarkMode(isDark) {
+        if(isDark) {
+          document.documentElement.classList.add('dark');
+          document.body.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.body.classList.remove('dark');
+        }
+      }
+
+      // Initialize dark mode from localStorage or system preference
+      let darkModeStored = localStorage.getItem(darkToggleKey);
+      if(darkModeStored === null) {
+        applyDarkMode(darkModeMediaQuery.matches);
+      } else {
+        applyDarkMode(darkModeStored === 'true');
+      }
+
+      // Add toggle button in navbar (append it dynamically)
+      const nav = document.querySelector('header nav');
+      const btn = document.createElement('button');
+      btn.textContent = '🌓';
+      btn.title = 'Toggle Dark Mode';
+      btn.className = 'ml-6 text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-500 transition text-lg focus:outline-none';
+      nav.appendChild(btn);
+
+      btn.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        document.body.classList.toggle('dark');
+        localStorage.setItem(darkToggleKey, isDark);
+      });
+    })();
+
+    // GSAP typing animation for hero intro
+    document.addEventListener('DOMContentLoaded', () => {
+      gsap.registerPlugin(TextPlugin);
+
+      const texts = [
+        "Hi, I'm Your Name.",
+        "A New Programmer
