@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz Master - Multiplayer Quiz Game</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+    body, html {
+      margin: 0; padding: 0;
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      overflow-x: hidden;
+      animation: bgShift 30s ease infinite alternate;
+      transition: background 1s ease, color 1s ease;
+    }
+    body.light {
+      background: linear-gradient(135deg, #f6f9fc, #dde4f2);
+      color: #5a47ab;
+    }
+
+    @keyframes bgShift {
+      0% {background: linear-gradient(135deg, #667eea, #764ba2);}
+      50% {background: linear-gradient(135deg, #764ba2, #c86dd7);}
+      100% {background: linear-gradient(135deg, #5a47ab, #9a6de7);}
+    }
+
+    #container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Header Title */
+    h1 {
+      font-size: 3.8rem;
+      margin-bottom: 15px;
+      letter-spacing: 4px;
+      position: relative;
+      cursor: default;
+      user-select: none;
+      animation: fadeInUp 1s ease forwards;
+      opacity: 0;
+    }
+    h1::after {
+      content: '';
+      position: absolute;
+      width: 60%;
+      height: 4px;
+      background: linear-gradient(90deg, #c86dd7, #5a47ab, #c86dd7);
+      bottom: -10px;
+      left: 20%;
+      border-radius: 10px;
+      animation: glowingUnderline 3s ease infinite;
+    }
+
+    @keyframes glowingUnderline {
+      0%, 100% {
+        filter: brightness(0.7);
+        transform: scaleX(1);
+      }
+      50% {
+        filter: brightness(1.6);
+        transform: scaleX(1.3);
+      }
+    }
+
+    /* Subtitle typing effect */
+    #subtitle {
+      font-weight: 300;
+      font-size: 1.5rem;
+      margin-bottom: 30px;
+      opacity: 0.85;
+      white-space: nowrap;
+      border-right: 2px solid white;
+      overflow: hidden;
+      width: 0;
+      animation: typing 3.5s steps(30, end) forwards, blinkCaret 0.75s step-end infinite;
+    }
+    body.light #subtitle {
+      border-color: #5a47ab;
+      color: #5a47ab;
+    }
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+    @keyframes blinkCaret {
+      0%, 100% { border-color: transparent; }
+      50% { border-color: white; }
+    }
+
+    /* Buttons */
+    button {
+      background: #fff;
+      color: #5a47ab;
+      border: none;
+      border-radius: 30px;
+      padding: 15px 50px;
+      font-weight: 600;
+      font-size: 1.3rem;
+      cursor: pointer;
+      box-shadow: 0 8px 15px rgba(255,255,255,0.3);
+      transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      outline-offset: 3px;
+      outline: transparent;
+      user-select: none;
+      margin-bottom: 10px;
+      user-select: none;
+    }
+    button:hover {
+      background: #5a47ab;
+      color: white;
+      box-shadow: 0 8px 30px rgba(255,255,255,0.6);
+      transform: scale(1.05) rotateX(8deg);
+    }
+    button:focus-visible {
+      outline: 3px solid #c86dd7;
+    }
+
+    /* Ripple effect */
+    button .ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: rippleEffect 600ms linear;
+      background-color: rgba(90, 71, 171, 0.5);
+      pointer-events: none;
+    }
+    @keyframes rippleEffect {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    /* Containers for welcome and join */
+    #welcome-screen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 60px 20px 20px;
+      text-align: center;
+      transition: opacity 1s ease, transform 1s ease;
+      z-index: 10;
+      overflow: visible;
+    }
+    #welcome-screen.fade-out {
+      opacity: 0;
+      transform: translateY(-50px);
+      pointer-events: none;
+    }
+
+    #join-screen {
+      position: absolute;
+      top: 100%;
+      width: 100%;
+      height: 100%;
+      background: white;
+      color: #5a47ab;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      box-shadow: 0 0 20px rgba(91,66,162,0.2);
+      border-radius: 15px 15px 0 0;
+      transition: top 1s cubic-bezier(0.77, 0, 0.175, 1);
+    }
+    #join-screen.show {
+      top: 0;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-top: 30px;
+      display: block;
+      position: relative;
+      cursor: text;
+    }
+
+    /* Floating label inputs */
+    input[type="text"] {
+      width: 280px;
+      padding: 14px 15px 14px 15px;
+      margin-top: 6px;
+      font-size: 1.1rem;
+      border: 2px solid #5a47ab;
+      border-radius: 30px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      outline: none;
+      background: transparent;
+      color: #5a47ab;
+      user-select: text;
+    }
+    input[type="text"]:focus {
+      border-color: #7b60ea;
+      box-shadow: 0 0 12px #7b60ea;
+    }
+    input[type="text"]::placeholder {
+      color: transparent;
+    }
+    .input-container {
+      position: relative;
+      margin-top: 20px;
+      width: 280px;
+    }
+    .input-container label {
+      position: absolute;
+      top: 14px;
+      left: 20px;
+      color: #5a47ab;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+    input[type="text"]:focus + label,
+    input[type="text"]:not(:placeholder-shown) + label {
+      transform: translateY(-28px);
+      font-size: 0.85rem;
+      color: #7b60ea;
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: relative;
+      cursor: help;
+      border-bottom: 1px dotted #c86dd7;
+      color: #c86dd7;
+      font-weight: 700;
+      margin-left: 6px;
+      user-select: none;
+    }
+    .tooltip:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #5a47ab;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      font-size: 0.85rem;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+      z-index: 20;
+      width: max-content;
+      max-width: 220px;
+      text-align: center;
+    }
+    .tooltip::after {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Player Info Panel */
+    #player-info {
+      position: absolute;
+      top: 120px;
+      left: 20px;
+      width: 320px;
+      max-height: 380px;
+      background: rgba(255 255 255 / 0.15);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      overflow-y: auto;
+      color: white;
+      font-weight: 500;
+      user-select: none;
+      z-index: 15;
+    }
+    body.light #player-info {
+      background: rgba(90 71 171 / 0.15);
+      color: #5a47ab;
+    }
+    #player-info h3 {
+      margin: 0 0 15px 0;
+      font-weight: 700;
+      font-size: 1.4rem;
+      text-align: center;
+    }
+
+    .player-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .player-list li {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(255 255 255 / 0.1);
+      transition: background 0.3s ease;
+    }
+    .player-list li:hover {
+      background: rgba(255 255 255 / 0.2);
+    }
+    .player-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #c86dd7;
+      color: white;
+      font-weight: 700;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.3rem;
+      margin-right: 15px;
+      user-select: none;
+      box-shadow: 0 0 8px #c86dd7;
+      flex-shrink: 0;
+    }
+    .player-name {
+      flex-grow: 1;
+      font-size: 1.1rem;
+      text-transform: capitalize;
+    }
+    .badge {
+      background: #5a47ab;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      user-select: none;
+      box-shadow: 0 0 8px #5a47ab;
+      white-space: nowrap;
+      margin-left: 8px;
+    }
+    .badge.host {
+      background: #ff5e5e;
+      box-shadow: 0 0 10px #ff5e5e;
+    }
+    .badge.ready {
+      background: #35d07f;
+      box-shadow: 0 0 10px #35d07f;
+    }
+
+    /* Scrollbar styling */
+    #player-info::-webkit-scrollbar {
+      width: 8px;
+    }
+    #player-info::-webkit-scrollbar-thumb {
+      background: rgba(255 255 255 / 0.3);
+      border-radius: 8px;
+    }
+    #player-info::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    /* Game Brief Section */
+    #game-brief {
+      position: absolute;
+      top: 120px;
+      right: 20px;
+      width: 340px;
+      max-height: 380px;
+      background: rgba(255 255 255 / 0.15);
+      border-radius: 20px;
+      padding: 20px 30px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      overflow-y: auto;
+      color: white;
+      font-weight: 400;
+      line-height: 1.5;
+      user-select: none;
+      z-index: 15;
+    }
+    body.light #game-brief {
+      background: rgba(90 71 171 / 0.15);
+      color: #5a47ab;
+    }
+    #game-brief h3 {
+      font-weight: 700;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+      text-align: center;
+      user-select: none;
+    }
+    #game-brief p {
+      margin-bottom: 12px;
+      font-size: 1rem;
+    }
+    #game-brief p strong {
+      color: #c86dd7;
+      font-weight: 700;
+    }
+
+    /* Icons */
+    .icon {
+      width: 22px;
+      height: 22px;
+      margin-right: 10px;
+      vertical-align: middle;
+      fill: #c86dd7;
+    }
+
+    /* Mascot */
+    #mascot {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.3s ease;
+      z-index: 20;
+    }
+    #mascot:hover {
+      transform: translateX(-50%) scale(1.1);
+    }
+
+    /* Mascot speech bubble */
+    #speech-bubble {
+      position: absolute;
+      bottom: 180px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 280px;
+      background: rgba(255 255 255 / 0.9);
+      color: #5a47ab;
+      border-radius: 15px;
+      padding: 15px 20px;
+      font-size: 1rem;
+      font-weight: 600;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      user-select: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      z-index: 30;
+    }
+    #speech-bubble.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 10px solid transparent;
+      border-top-color: rgba(255 255 255 / 0.9);
+    }
+
+    /* Dark/Light toggle */
+    #toggle-theme {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: 2px solid white;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 20px;
+      user-select: none;
+      transition: all 0.4s ease;
+      z-index: 50;
+    }
+    #toggle-theme:hover {
+      background: white;
+      color: #5a47ab;
+      border-color: #5a47ab;
+    }
+    body.light #toggle-theme {
+      color: #5a47ab;
+      border-color: #5a47ab;
+    }
+    body.light #toggle-theme:hover {
+      background: #5a47ab;
+      color: white;
+      border-color: white;
+    }
+
+    /* Fade in animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(25px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      #player-info, #game-brief {
+        position: relative;
+        width: auto;
+        max-height: none;
+        margin: 15px 20px;
+        border-radius: 15px;
+      }
+      #player-info {
+        order: 2;
+      }
+      #game-brief {
+        order: 1;
+      }
+      #mascot {
+        bottom: 20px;
+        width: 120px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div id="container">
+    <button id="toggle-theme" aria-label="Toggle Dark/Light Mode" title="Toggle Dark/Light Mode">🌙</button>
+
+    <div id="welcome-screen" role="main" aria-label="Welcome to Quiz Master">
+      <h1 tabindex="0">Quiz Master</h1>
+      <div id="subtitle" aria-live="polite" aria-atomic="true"></div>
+
+      <button id="start-btn" aria-label="Start Game">Get Started</button>
+    </div>
+
+    <!-- Player Info Panel -->
+    <section id="player-info" aria-label="Players in lobby">
+      <h3>Players in Lobby</h3>
+      <ul class="player-list" id="player-list" role="list">
+        <!-- JS populated -->
+      </ul>
+    </section>
+
+    <!-- Game Brief -->
+    <section id="game-brief" aria-label="Game Instructions">
+      <h3>How to Play</h3>
+      <p><svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" stroke="#c86dd7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>Join a Room:</strong> Enter your username and the room code shared by friends.</p>
+      <p><svg class="icon" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 15v-8m0 0h-1m1 0h1" stroke="#c86dd7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>Answer Questions:</strong> 15 seconds per multiple-choice question, fastest correct answers earn more points!</p>
+      <p><svg class="icon" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="#c86dd7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>Stay Connected:</strong> You can rejoin if disconnected; game continues for others.</p>
+      <p><svg class="icon" viewBox="0 0 24 24"><path d="M7 20h10M7 20l-2-5m2 5l5-9m5-1l3 3m-8-3l4 4" stroke="#c86dd7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>Leaderboard & Chat:</strong> See top players and chat during the game to stay social.</p>
+      <p><strong>Tip:</strong> Click on the mascot below for helpful hints and fun facts!</p>
+    </section>
+
+    <!-- Mascot -->
+    <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="Quiz Mascot" id="mascot" role="button" aria-pressed="false" tabindex="0" title="Click me for tips" />
+
+    <!-- Speech bubble -->
+    <div id="speech-bubble" role="alert" aria-live="assertive"></div>
+  </div>
+
+  <script>
+    (() => {
+      // Mock player data
+      const players = [
+        { name: 'alice', avatar: 'A', status: 'host' },
+        { name: 'bob', avatar: 'B', status: 'ready' },
+        { name: 'charlie', avatar: 'C', status: '' },
+        { name: 'diana', avatar: 'D', status: 'ready' },
+        { name: 'eve', avatar: 'E', status: '' }
+      ];
+
+      const playerListEl = document.getElementById('player-list');
+
+      function renderPlayers() {
+        playerListEl.innerHTML = '';
+        players.forEach(({ name, avatar, status }) => {
+          const li = document.createElement('li');
+
+          const avatarDiv = document.createElement('div');
+          avatarDiv.className = 'player-avatar';
+          avatarDiv.textContent = avatar;
+
+          const nameDiv = document.createElement('div');
+          nameDiv.className = 'player-name';
+          nameDiv.textContent = name;
+
+          li.appendChild(avatarDiv);
+          li.appendChild(nameDiv);
+
+          if (status) {
+            const badge = document.createElement('span');
+            badge.className = 'badge ' + status;
+            badge.textContent = status === 'host' ? 'Host' : 'Ready';
+            li.appendChild(badge);
+          }
+
+          playerListEl.appendChild(li);
+        });
+      }
+      renderPlayers();
+
+      // Subtitle typing effect (re-run on load)
+      const subtitle = document.getElementById('subtitle');
+      const subtitleText = 'Challenge your friends in real-time multiplayer quiz battles!';
+      let charIndex = 0;
+
+      function typeSubtitle() {
+        if (charIndex < subtitleText.length) {
+          subtitle.textContent += subtitleText.charAt(charIndex);
+          charIndex++;
+          setTimeout(typeSubtitle, 50);
+        }
+      }
+      typeSubtitle();
+
+      // Mascot speech bubble tips
+      const mascot = document.getElementById('mascot');
+      const speechBubble = document.getElementById('speech-bubble');
+
+      const tips = [
+        "Did you know? Answering quickly earns you more points!",
+        "Tip: Pay attention to tricky questions, sometimes answers are sneaky!",
+        "Remember: You can chat with players during the game to boost morale!",
+        "Fun fact: Our mascot loves trivia about animals 🦉!",
+        "Pro tip: Stay connected to avoid losing points for disconnects."
+      ];
+
+      let tipIndex = 0;
+
+      function showTip() {
+        speechBubble.textContent = tips[tipIndex];
+        speechBubble.classList.add('show');
+        mascot.setAttribute('aria-pressed', 'true');
+        tipIndex = (tipIndex + 1) % tips.length;
+      }
+      function hideTip() {
+        speechBubble.classList.remove('show');
+        mascot.setAttribute('aria-pressed', 'false');
+      }
+
+      mascot.addEventListener('click', () => {
+        if (speechBubble.classList.contains('show')) {
+          hideTip();
+        } else {
+          showTip();
+        }
+      });
+      mascot.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          mascot.click();
+        }
+      });
+
+      // Dark/light mode toggle
+      const toggleThemeBtn = document.getElementById('toggle-theme');
+      const body = document.body;
+
+      function updateToggleIcon() {
+        toggleThemeBtn.textContent = body.classList.contains('light') ? '🌙' : '☀️';
+      }
+
+      toggleThemeBtn.addEventListener('click', () => {
+        body.classList.toggle('light');
+        updateToggleIcon();
+      });
+      updateToggleIcon();
+
+      // Button ripple effect
+      document.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', function(e) {
+          const circle = document.createElement('span');
+          circle.classList.add('ripple');
+          this.appendChild(circle);
+
+          const d = Math.max(this.clientWidth, this.clientHeight);
+          circle.style.width = circle.style.height = d + 'px';
+
+          const rect = this.getBoundingClientRect();
+          circle.style.left = e.clientX - rect.left - d/2 + 'px';
+          circle.style.top = e.clientY - rect.top - d/2 + 'px';
+
+          circle.addEventListener('animationend', () => {
+            circle.remove();
+          });
+        });
+      });
+
+      // Start button fade out animation (mock behavior)
+      const startBtn = document.getElementById('start-btn');
+      const welcomeScreen = document.getElementById('welcome-screen');
+
+      startBtn.addEventListener('click', () => {
+        startBtn.disabled = true;
+        startBtn.textContent = 'Loading...';
+        welcomeScreen.classList.add('fade-out');
+        setTimeout(() => {
+          alert('Here you would enter the game lobby or join screen!');
+          startBtn.disabled = false;
+          startBtn.textContent = 'Get Started';
+          welcomeScreen.classList.remove('fade-out');
+        }, 2000);
+      });
+
+    })();
+  </script>
+</body>
+</html>
+ 
