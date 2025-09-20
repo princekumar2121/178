@@ -1,0 +1,29 @@
+                          disabled={answeredQuestions.has(currentQuestionIndex)}
+                        >
+                          {option}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <div className="text-sm text-muted-foreground">
+                    Score: {score}
+                  </div>
+                </CardFooter>
+              </Card>
+            ) : null}
+          </div>
+        )}
+      </main>
+      <footer className="bg-muted mt-12 py-6 px-6">
+        <div className="container mx-auto text-center text-muted-foreground">
+          <p>Created by Prince Kumar Ningh, Piyush Garg, and Gamil Singh</p>
+          <p>Email: prince87715@gmail.com</p>
+          <p className="text-sm mt-2">© 2024 QuizMaster. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+  );
+};
+export default QuizWebsite;
