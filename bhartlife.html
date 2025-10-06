@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BharatLife: Medieval World</title>
+<style>
+body, html {
+    margin:0; padding:0; font-family:'Inter',sans-serif;
+    background:#f3f4f6; color:#1f2937; display:flex; justify-content:center;
+}
+.app {
+    max-width:1400px; width:100%; margin:10px; display:flex; flex-direction:column;
+}
+header {
+    background:#2563eb; color:white; text-align:center;
+    padding:16px; font-size:1.8em; font-weight:700; border-radius:8px 8px 0 0;
+}
+.main {display:flex; flex-wrap:wrap; gap:12px; margin-top:12px;}
+.panel {
+    background:white; border-radius:12px; padding:12px;
+    flex:1; min-width:350px; box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+h2 {margin-top:0; margin-bottom:8px;}
+#log {height:260px; overflow:auto; white-space:pre-wrap; padding:6px; background:#e5e7eb; border-radius:8px;}
+#choices {display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;}
+button {
+    padding:8px 12px; border:none; border-radius:8px; font-weight:600; cursor:pointer;
+    background:#3b82f6; color:white; transition:0.2s;
+}
+button:hover {background:#2563eb;}
+.stats, .family, .ministers, .construction {display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;}
+.card {
+    background:#f9fafb; padding:6px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.06);
+}
+#map {display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:6px; margin-top:8px;}
+.kingdom {
+    padding:12px; border-radius:8px; text-align:center; cursor:pointer;
+    transition:0.2s; color:white; font-weight:600;
+}
+.kingdom:hover {transform:scale(1.05);}
+.myKingdom {background:#10b981;}
+.enemy {background:#ef4444;}
+.neutral {background:#f59e0b;}
+footer {margin-top:12px; font-size:12px; text-align:center; color:#6b7280;}
+input[type=text] {
+    padding:6px; border-radius:6px; border:1px solid #d1d5db;
+    margin-right:6px; width:140px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>BharatLife: Medieval World Simulator</header>
+<div class="main">
+<div class="panel">
+<h2>Event Log</h2>
+<div id="log"></div>
+<div id="choices"></div>
+</div>
+<div class="panel">
+<h2>Stats</h2><div class="stats" id="statsPanel"></div>
+<h2>Family</h2><div class="family" id="familyPanel"></div>
+<h2>Ministers</h2><div class="ministers" id="ministersPanel"></div>
+<h2>Construction</h2><div class="construction" id="constructionPanel"></div>
+<h2>Kingdom Map</h2><div id="map"></div>
+<hr>
+<div style="margin-top:6px;">
+<button id="newGameBtn">New Game</button>
+<button id="saveBtn">Save</button>
+<button id="loadBtn">Load</button>
+<button id="autoPlay">Auto-Play 20 yrs</button>
+</div>
+</div>
+</div>
+<footer>Manage your dynasty, kingdom, and legacy over generations worldwide.</footer>
+</div>
+
+<script>
+// ---------- Globals ----------
+const AUTOSAVE_KEY="bharatlife_world_save_v2";
+
+// Expanded Kingdoms
+const KingdomsData=[
+{id:'delhi',name:'Delhi Sultanate',army:200,wealth:500,neighbors:['mewar','marwar','bengal']},
+{id:'vijayanagara',name:'Vijayanagara',army:180,wealth:450,neighbors:['chola','maratha']},
+{id:'chola',name:'Chola',army:120,wealth:350,neighbors:['vijayanagara']},
+{id:'mughal',name:'Mughal Empire',army:300,wealth:700,neighbors:['delhi','maratha']},
+{id:'maratha',name:'Maratha',army:150,wealth:400,neighbors:['vijayanagara','mughal']},
+// Rajput divisions
+{id:'mewar',name:'Mewar',army:70,wealth:150,neighbors:['delhi','marwar']},
+{id:'marwar',name:'Marwar',army:60,wealth:130,neighbors:['mewar','jodhpur']},
+{id:'ajmer',name:'Ajmer',army:50,wealth:110,neighbors:['mewar','jodhpur']},
+{id:'jodhpur',name:'Jodhpur',army:55,wealth:120,neighbors:['marwar','jasol']},
+{id:'jasol',name:'Jasol',army:40,wealth:100,neighbors:['jodhpur','bundi']},
+{id:'bundi',name:'Bundi',army:45,wealth:105,neighbors:['jasol','maratha']},
+{id:'bengal',name:'Bengal Sultanate',army:110,wealth:300,neighbors:['delhi','vijayanagara']},
+{id:'ahom',name:'Ahom Kingdom',army:90,wealth:250,neighbors:['bengal']},
+{id:'mongol',name:'Mongol Empire',army:400,wealth:900,neighbors:['delhi','bengal']},
+{id:'ottoman',name:'Ottoman Empire',army:350,wealth:850,neighbors:['mughal']},
+{id:'ming',name:'Ming China',army:320,wealth:800,neighbors:['mongol']},
+{id:'persia',name:'Persia',army:280,wealth:650,neighbors:['ottoman']},
+{id:'england',name:'England',army:220,wealth:600,neighbors:['france']},
+{id:'france',name:'France',army:240,wealth:620,neighbors:['england']},
+{id:'spain',name:'Spain',army:200,wealth:550,neighbors:['france']},
+{id:'portugal',name:'Portugal',army:180,wealth:500,neighbors:['spain']},
+{id:'ottomania',name:'Ottoman Anatolia',army:200,wealth:600,neighbors:['ottoman']},
+{id:'korea',name:'Korea',army:150,wealth:400,neighbors:['ming']},
+{id:'siberia',name:'Siberia',army:120,wealth:350,neighbors:['mongol']},
+{id:'tibet',name:'Tibet',army:100,wealth:300,neighbors:['ming']},
+{id:'afghanistan',name:'Afghanistan',army:130,wealth:380,neighbors:['persia','delhi']},
+{id:'cambodia',name:'Cambodia',army:80,wealth:250,neighbors:['vijayanagara']},
+{id:'sri_lanka',name:'Sri Lanka',army:60,wealth:200,neighbors:['chola']},
+{id:'nepal',name:'Nepal',army:50,wealth:180,neighbors:['mewar']},
+{id:'burma',name:'Burma',army:90,wealth:280,neighbors:['vijayanagara']},
+{id:'bavaria',name:'Bavaria',army:100,wealth:300,neighbors:['france']},
+{id:'poland',name:'Poland',army:120,wealth:350,neighbors:['france','england']},
+{id:'hungary',name:'Hungary',army:110,wealth:330,neighbors:['poland']},
+];
+
+let state=null;
+
+// ---------- Utils ----------
+function log(text){document.getElementById('log').innerText=text+"\n\n"+document.getElementById('log').innerText;}
+function clearLog(){document.getElementById('log').innerText='';}
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pct(p){return Math.random()<p;}
+function saveState(){ if(state) localStorage.setItem(AUTOSAVE_KEY,JSON.stringify(state)); log("Game saved."); }
+function loadState(){ const s=localStorage.getItem(AUTOSAVE_KEY); if(s){state=JSON.parse(s); renderAll(); mainMenu(); log("Game loaded.");}else alert("No saved game found."); }
+
+// ---------- Game Init ----------
+function newPlayerSetup(){
+clearLog();
+const choices=document.getElementById('choices'); choices.innerHTML='';
+log("Welcome! Enter your name to start:");
+const input=document.createElement('input'); input.type='text'; input.placeholder='Your name';
+const btn=document.createElement('button'); btn.innerText='Start';
+btn.onclick=()=>{ const name=input.value.trim()||'Player'; chooseKingdom(name); };
+choices.appendChild(input); choices.appendChild(btn);
+}
+
+function chooseKingdom(name){
+clearLog();
+const choices=document.getElementById('choices'); choices.innerHTML='';
+log(`Hello ${name}! Choose your kingdom:`);
+KingdomsData.forEach(k=>{const btn=document.createElement('button'); btn.innerText=k.name; btn.onclick=()=>startNewGame(name,k.id); choices.appendChild(btn);});
+}
+
+// ---------- Start Game ----------
+function startNewGame(name,kingdomId){
+const k=KingdomsData.find(x=>x.id===kingdomId);
+const player={name:name,age:randInt(16,20),gender:pct(0.5)?'M':'F',health:100,wealth:k.wealth/2,honor:50,wisdom:50,strength:40,influence:20,army:k.army,spouse:null,children:[],generation:1,alive:true};
+const ministers={finance:{name:'Finance Minister',level:1},military:{name:'General',level:1},builder:{name:'Architect',level:1},diplomat:{name:'Diplomat',level:1}};
+const construction={houses:1,castle:0,barracks:1,monuments:0};
+state={year:1200,kingdomId:k.id,player,dynasty:[],kingdoms:JSON.parse(JSON.stringify(KingdomsData)),ministers,construction};
+log(`Welcome ${player.name}, ruler of ${k.name}`);
+renderAll(); mainMenu();
+}
+
+// ---------- Main Menu ----------
+function mainMenu(){
+const choices=document.getElementById('choices'); choices.innerHTML='';
+const actions=[
+{k:'year','t':'Live One Year'},
+{k:'status','t':'View Stats & Family'},
+{k:'dyn','t':'View Dynasty'},
+{k:'min','t':'Manage Ministers'},
+{k:'build','t':'Construction Menu'},
+{k:'marriage','t':'Arrange Marriage'},
+{k:'war','t':'Declare War'}
+];
+actions.forEach(a=>{
+const btn=document.createElement('button'); btn.innerText=a.t; btn.onclick=()=>{
+if(a.k==='year') yearTick();
+if(a.k==='status') showCharacterCard();
+if(a.k==='dyn') showDynasty();
+if(a.k==='min') manageMinisters();
+if(a.k==='build') manageConstruction();
+if(a.k==='marriage') manageMarriage();
+if(a.k==='war') warMenu();
+};
+choices.appendChild(btn);
+});
+}
+
+// ---------- Year Tick ----------
+function yearTick(){
+if(!state||!state.player) return;
+const p=state.player; const k=state.kingdoms.find(x=>x.id===state.kingdomId);
+state.year+=1; p.age+=1;
+// Increment children age
+p.children.forEach(c=>{ if(c.alive) c.age+=1; });
+// Economy & tax
+const income=Math.floor(k.wealth*0.1*state.ministers.finance.level); p.wealth+=income;
+log(`Year ${state.year}: You collected ${income} dhan in taxes.`);
+// Army growth
+p.army+=Math.floor(10*state.ministers.military.level); 
+// Random events
+if(pct(0.3)) minorEvent();
+// Marriage/children
+if(!p.spouse && pct(0.3)) log("You received a marriage proposal this year.");
+eventChildbirth();
+checkDeath();
+renderAll();
+}
+
+// ---------- Minor Event ----------
+function minorEvent(){
+const p=state.player; const e=randInt(1,6);
+if(e===1){ const gain=randInt(10,50); p.wealth+=gain; log(`You earned ${gain} dhan through trade.`);}
+if(e===2){ const lost=randInt(5,20); p.army-=lost; log(`Some soldiers died due to illness: -${lost} army.`);}
+if(e===3){ log(`A festival increased happiness in your kingdom.`);}
+if(e===4){ p.health-=randInt(1,5); log(`You fell sick and lost some health.`);}
+if(e===5){ log(`A diplomat improved relations with neighboring kingdoms.`);}
+if(e===6){ log("A mysterious traveler gifted rare knowledge."); p.wisdom+=5;}
+}
+
+// ---------- Marriage ----------
+function manageMarriage(){
+const choices=document.getElementById('choices'); choices.innerHTML='';
+const p=state.player; 
+if(p.spouse){ log("You are already married to "+p.spouse.name); mainMenu(); return; }
+const potentialSpouse={name:['Anika','Raj','Sita','Vikram','Radha','Arjun'][randInt(0,5)],gender:p.gender==='M'?'F':'M'};
+log(`A potential spouse is ${potentialSpouse.name} (${potentialSpouse.gender})`);
+const btnMarry=document.createElement('button'); btnMarry.innerText='Marry'; btnMarry.onclick=()=>{p.spouse=potentialSpouse; log(`You married ${potentialSpouse.name}`); renderAll(); mainMenu();};
+choices.appendChild(btnMarry);
+const back=document.createElement('button'); back.innerText='Back'; back.onclick=()=>mainMenu(); choices.appendChild(back);
+}
+
+// ---------- Childbirth ----------
+function eventChildbirth(){
+const p=state.player;
+if(!p.spouse) return;
+if(pct(0.25)){
+const gender=pct(0.5)?'M':'F';
+const name=gender==='M'?['Arjun','Vikram','Pratap'][randInt(0,2)]:['Sita','Radha','Meera'][randInt(0,2)];
+const child={name,gender,age:0,generation:p.generation+1,health:80,alive:true};
+p.children.push(child);
+log(`👶 A child is born: ${name}`);
+}
+}
+
+// ---------- Death & Inheritance ----------
+function checkDeath(){
+const p=state.player;
+if(p.health<=0||p.age>80){
+log(`${p.name} has died. Choose an heir if available.`);
+const choices=document.getElementById('choices'); choices.innerHTML='';
+const heirs=p.children.filter(c=>c.alive);
+if(heirs.length===0){ log("No heirs. Dynasty ends."); state.player=null; return; }
+heirs.forEach(c=>{ const btn=document.createElement('button'); btn.innerText=c.name; btn.onclick=()=>inherit(c); choices.appendChild(btn); });
+}
+}
+function inherit(child){
+const p=state.player; child.wealth=Math.floor(p.wealth*0.7); child.army=Math.floor(p.army*0.7);
+state.dynasty.push({name:p.name,generation:p.generation,age:p.age});
+state.player=child; log(`Now playing as ${child.name}`);
+renderAll();
+}
+
+// ---------- Rendering ----------
+function renderAll(){ renderStats(); renderFamily(); renderMinisters(); renderConstruction(); renderMap(); }
+function renderStats(){ const sp=document.getElementById('statsPanel'); sp.innerHTML=''; const p=state.player; if(!p) return;
+['age','health','wealth','honor','wisdom','strength','influence','army'].forEach(s=>{ const div=document.createElement('div'); div.className='card'; div.innerText=`${s.charAt(0).toUpperCase()+s.slice(1)}: ${p[s]}`; sp.appendChild(div); });}
+function renderFamily(){ const fp=document.getElementById('familyPanel'); fp.innerHTML=''; const p=state.player; if(!p) return;
+const spouse=p.spouse?p.spouse.name:'None'; const div=document.createElement('div'); div.className='card'; div.innerText=`Spouse: ${spouse}`; fp.appendChild(div);
+if(p.children.length>0) p.children.forEach(c=>{ const d=document.createElement('div'); d.className='card'; d.innerText=`Child: ${c.name} (${c.gender}) age ${c.age}`; fp.appendChild(d); });
+else fp.appendChild(document.createElement('div').appendChild(document.createTextNode('No children')));}
+function renderMinisters(){ const mp=document.getElementById('ministersPanel'); mp.innerHTML=''; if(!state) return; for(const key in state.ministers){ const m=state.ministers[key]; const div=document.createElement('div'); div.className='card'; div.innerText=`${m.name} (Level ${m.level})`; mp.appendChild(div); }}
+function renderConstruction(){ const cp=document.getElementById('constructionPanel'); cp.innerHTML=''; if(!state) return; for(const key in state.construction){ const v=state.construction[key]; const div=document.createElement('div'); div.className='card'; div.innerText=`${key.charAt(0).toUpperCase()+key.slice(1)}: ${v}`; cp.appendChild(div); }}
+function renderMap(){ const mp=document.getElementById('map'); mp.innerHTML=''; if(!state) return; state.kingdoms.forEach(k=>{ const div=document.createElement('div'); div.className='kingdom'; if(k.id===state.kingdomId) div.classList.add('myKingdom'); else if(k.conqueredBy===state.player.name) div.classList.add('myKingdom'); else div.classList.add('neutral'); div.innerText=k.name; div.onclick=()=>declareWar(k.id); mp.appendChild(div); });}
+
+// ---------- War ----------
+function warMenu(){ const choices=document.getElementById('choices'); choices.innerHTML=''; state.kingdoms.forEach(k=>{ if(k.id!==state.kingdomId){ const btn=document.createElement('button'); btn.innerText=`Attack ${k.name}`; btn.onclick=()=>declareWar(k.id); choices.appendChild(btn);}}); const back=document.createElement('button'); back.innerText='Back'; back.onclick=()=>mainMenu(); choices.appendChild(back);}
+function declareWar(targetId){
+if(!state) return; const target=state.kingdoms.find(k=>k.id===targetId); if(target.id===state.kingdomId){ log("Cannot attack your own kingdom!"); return; }
+const pArmy=state.player.army; const tArmy=target.army; log(`⚔️ War declared on ${target.name}! Your army: ${pArmy}, Enemy army: ${tArmy}`);
+if(pArmy>tArmy || pct(0.5)){ log(`Victory! You conquered ${target.name}`); target.conqueredBy=state.player.name; state.player.army=Math.floor(pArmy*0.8+tArmy*0.2); target.army=Math.floor(tArmy*0.5); renderAll(); } 
+else { log(`Defeat! You lost the battle.`); state.player.army=Math.floor(pArmy*0.5); target.army=Math.floor(tArmy*1.1); renderAll(); }
+}
+
+// ---------- Dynasty ----------
+function showDynasty(){ const choices=document.getElementById('choices'); choices.innerHTML=''; if(!state) return; if(state.dynasty.length===0){ log("No dynasty history yet."); return; } state.dynasty.forEach(d=>{ log(`Generation ${d.generation}: ${d.name} (Age at death: ${d.age})`); });}
+
+// ---------- Character Card ----------
+function showCharacterCard(){ renderStats(); renderFamily(); mainMenu();}
+
+// ---------- Ministers Menu ----------
+function manageMinisters(){ const choices=document.getElementById('choices'); choices.innerHTML='';
+for(const key in state.ministers){ const m=state.ministers[key]; const btn=document.createElement('button'); btn.innerText=`Upgrade ${m.name} (Level ${m.level})`; btn.onclick=()=>{ if(state.player.wealth>=50){state.player.wealth-=50; m.level+=1; log(`${m.name} upgraded to level ${m.level}`); renderAll();}else log("Not enough wealth."); choices.innerHTML=''; mainMenu();}; choices.appendChild(btn);}
+const back=document.createElement('button'); back.innerText='Back'; back.onclick=()=>mainMenu(); choices.appendChild(back);}
+
+// ---------- Construction Menu ----------
+function manageConstruction(){ const choices=document.getElementById('choices'); choices.innerHTML='';
+for(const key in state.construction){ const btn=document.createElement('button'); btn.innerText=`Build/Upgrade ${key.charAt(0).toUpperCase()+key.slice(1)}`; btn.onclick=()=>{ const cost=50*(state.construction[key]+1); if(state.player.wealth>=cost){state.player.wealth-=cost; state.construction[key]+=1; log(`${key.charAt(0).toUpperCase()+key.slice(1)} upgraded to level ${state.construction[key]}`); renderAll(); } else log("Not enough wealth."); choices.innerHTML=''; mainMenu(); }; choices.appendChild(btn); }
+const back=document.createElement('button'); back.innerText='Back'; back.onclick=()=>mainMenu(); choices.appendChild(back);}
+
+// ---------- Buttons ----------
+document.getElementById('newGameBtn').onclick=()=>newPlayerSetup();
+document.getElementById('saveBtn').onclick=()=>saveState();
+document.getElementById('loadBtn').onclick=()=>loadState();
+document.getElementById('autoPlay').onclick=()=>{for(let i=0;i<20;i++){ yearTick(); }};
+
+// ---------- Init ----------
+newPlayerSetup();
+</script>
+</body>
+</html>
